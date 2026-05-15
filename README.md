@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![AxionOS Logo](./assets/logo.png)
+![AxionOS Logo](./logo.png)
 
 ### A modern immutable Linux distribution powered by Fedora Atomic, BlueBuild and OCI containers.
 
