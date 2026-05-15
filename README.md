@@ -1,43 +1,63 @@
-# AxionOS &nbsp; [![bluebuild build badge](https://github.com/arso-fr/axionos/actions/workflows/build.yml/badge.svg)](https://github.com/arso-fr/axionos/actions/workflows/build.yml)
+# AxionOS
 
-See the [BlueBuild docs](https://blue-build.org/how-to/setup/) for quick setup instructions for setting up your own repository based on this template.
+<div align="center">
 
-After setup, it is recommended you update this README to describe your custom image.
+![AxionOS Logo](./assets/logo.png)
 
-## Installation
+### A modern immutable Linux distribution powered by Fedora Atomic, BlueBuild and OCI containers.
 
-> [!WARNING]  
-> [This is an experimental feature](https://www.fedoraproject.org/wiki/Changes/OstreeNativeContainerStable), try at your own discretion.
+[![Build Status](https://github.com/arso-fr/axionos/actions/workflows/build.yml/badge.svg)](https://github.com/arso-fr/axionos/actions/workflows/build.yml)
+[![License](https://img.shields.io/github/license/arso-fr/axionos)](LICENSE)
+[![Fedora](https://img.shields.io/badge/Fedora-Atomic-blue)](https://fedoraproject.org/atomic-desktops/)
+[![BlueBuild](https://img.shields.io/badge/Built%20With-BlueBuild-53a7ff)](https://blue-build.org)
 
-To rebase an existing atomic Fedora installation to the latest build:
+</div>
 
-- First rebase to the unsigned image, to get the proper signing keys and policies installed:
-  ```
-  rpm-ostree rebase ostree-unverified-registry:ghcr.io/arso-fr/axionos:latest
-  ```
-- Reboot to complete the rebase:
-  ```
-  systemctl reboot
-  ```
-- Then rebase to the signed image, like so:
-  ```
-  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/arso-fr/axionos:latest
-  ```
-- Reboot again to complete the installation
-  ```
-  systemctl reboot
-  ```
+---
 
-The `latest` tag will automatically point to the latest build. That build will still always use the Fedora version specified in `recipe.yml`, so you won't get accidentally updated to the next major version.
+# ✨ About
 
-## ISO
+AxionOS is a custom immutable Linux distribution based on Fedora Atomic technologies and built using BlueBuild.
 
-If build on Fedora Atomic, you can generate an offline ISO with the instructions available [here](https://blue-build.org/how-to/generate-iso/#_top). These ISOs cannot unfortunately be distributed on GitHub for free due to large sizes, so for public projects something else has to be used for hosting.
+It focuses on:
 
-## Verification
+- ⚡ Fast and reproducible deployments
+- 🔒 Immutable and reliable system updates
+- 📦 OCI container-native workflows
+- 🧱 Atomic upgrades and rollbacks
+- 🎨 Custom branding and desktop experience
+- 🚀 Modern Linux development workflow
 
-These images are signed with [Sigstore](https://www.sigstore.dev/)'s [cosign](https://github.com/sigstore/cosign). You can verify the signature by downloading the `cosign.pub` file from this repo and running the following command:
+AxionOS is distributed as:
+- OCI container images
+- bootable ISOs
+- signed system images
+
+---
+
+# 🧱 Technologies
+
+AxionOS is powered by:
+
+- Fedora Atomic
+- rpm-ostree
+- BlueBuild
+- bootc
+- OCI containers
+- GitHub Actions
+- Sigstore / Cosign
+
+---
+
+# 📦 Installation
+
+> [!WARNING]
+> AxionOS is currently experimental.
+> Use at your own discretion.
+
+## Rebase an existing Fedora Atomic installation
+
+### 1. Rebase to the unsigned image
 
 ```bash
-cosign verify --key cosign.pub ghcr.io/arso-fr/axionos
-```
+rpm-ostree rebase ostree-unverified-registry:ghcr.io/arso-fr/axionos:latest
