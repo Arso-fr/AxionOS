@@ -100,7 +100,7 @@ jobs:
       # =========================
       - name: Authorization check
         run: |
-          if [ "${{ github.actor }}" != "arso_fr" ]; then
+          if [ "${{ github.actor }}" != "Arso-fr" ]; then
             echo "❌ Unauthorized user: ${{ github.actor }}"
             exit 1
           fi
