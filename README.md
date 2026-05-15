@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="./logo.png" width="120">
+<img src="./logo.png" width="300">
 
 ### A modern immutable Linux distribution powered by Fedora Atomic, BlueBuild and OCI containers.
 
