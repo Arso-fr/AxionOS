@@ -1,4 +1,4 @@
-name: axion-os
+name: Build Iso and release
 
 on:
   workflow_dispatch:
