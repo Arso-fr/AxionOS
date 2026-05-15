@@ -1,6 +1,8 @@
-name: Build Iso and release
+name: Build Iso and release (axion-os)
 
 on:
+  schedule:
+    - cron: "0 6 1 * *" # 1er du mois à 06:00 UTC
   workflow_dispatch:
 
 concurrency:
@@ -9,51 +11,71 @@ concurrency:
 
 jobs:
 
-  build:
-    name: Prepare axion-os Image
-    runs-on: ubuntu-latest
-
-    outputs:
-      image: ${{ steps.set.outputs.image }}
-
-    steps:
-      - name: Set base image (axion-os)
-        id: set
-        run: |
-          echo "image=ghcr.io/arso-fr/axion-os:latest" >> $GITHUB_OUTPUT
-
-
   iso:
-    name: Generate ISO
+
+    name: Generate axion-os ISO
     runs-on: ubuntu-latest
-    needs: build
 
     permissions:
       contents: write
 
     steps:
+
+      # =========================
+      # 🔐 OWNER ONLY CHECK
+      # =========================
+      - name: Authorization check
+        run: |
+          if [ "${{ github.actor }}" != "TON_USERNAME_GITHUB" ]; then
+            echo "❌ Unauthorized user: ${{ github.actor }}"
+            exit 1
+          fi
+
+      # =========================
+      # INSTALL BLUEBUILD CLI
+      # =========================
       - name: Install BlueBuild CLI
         run: |
           curl -L https://github.com/blue-build/cli/releases/latest/download/bluebuild-linux-amd64 -o bluebuild
           chmod +x bluebuild
           sudo mv bluebuild /usr/local/bin/
 
-      - name: Define ISO filename
+      # =========================
+      # BASE IMAGE
+      # =========================
+      - name: Set base image (axion-os)
         id: meta
+        run: |
+          echo "image=ghcr.io/arso-fr/axion-os:latest" >> $GITHUB_OUTPUT
+
+      # =========================
+      # ISO NAME
+      # =========================
+      - name: Define ISO filename
+        id: iso
         run: |
           DATE=$(date +%Y-%m-%d)
           echo "iso_name=axion-os-${DATE}-${GITHUB_RUN_NUMBER}.iso" >> $GITHUB_OUTPUT
 
+      # =========================
+      # GENERATE ISO
+      # =========================
       - name: Generate ISO
         run: |
           bluebuild generate-iso \
-            --iso-name ${{ steps.meta.outputs.iso_name }} \
-            image ${{ needs.build.outputs.image }}
+            --iso-name ${{ steps.iso.outputs.iso_name }} \
+            image ${{ steps.meta.outputs.image }}
 
+      # =========================
+      # CHECKSUM
+      # =========================
       - name: Generate SHA256
         run: |
-          sha256sum ${{ steps.meta.outputs.iso_name }} > ${{ steps.meta.outputs.iso_name }}.sha256
+          sha256sum ${{ steps.iso.outputs.iso_name }} > ${{ steps.iso.outputs.iso_name }}.sha256
 
+      # =========================
+      # ARTIFACT
+      # =========================
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -62,8 +84,8 @@ jobs:
             *.iso
             *.sha256
 
-
   release:
+
     name: Publish Release
     runs-on: ubuntu-latest
     needs: iso
@@ -72,11 +94,28 @@ jobs:
       contents: write
 
     steps:
-      - name: Download artifacts
+
+      # =========================
+      # 🔐 OWNER ONLY CHECK
+      # =========================
+      - name: Authorization check
+        run: |
+          if [ "${{ github.actor }}" != "arso_fr" ]; then
+            echo "❌ Unauthorized user: ${{ github.actor }}"
+            exit 1
+          fi
+
+      # =========================
+      # DOWNLOAD ARTIFACT
+      # =========================
+      - name: Download ISO
         uses: actions/download-artifact@v4
         with:
           name: axion-os-iso
 
+      # =========================
+      # RELEASE
+      # =========================
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
