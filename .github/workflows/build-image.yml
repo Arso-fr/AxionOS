@@ -1,4 +1,4 @@
-name: axion-os
+name: Build Axion OS Image
 
 on:
   schedule:
