@@ -6,7 +6,8 @@
 
 ### A modern immutable Linux distribution powered by Fedora Atomic, BlueBuild and OCI containers.
 
-[![Build Status](https://github.com/arso-fr/axionos/actions/workflows/build.yml/badge.svg)](https://github.com/arso-fr/axionos/actions/workflows/build.yml)
+[![Build Image](https://github.com/arso-fr/axionos/actions/workflows/build-image.yml/badge.svg)](https://github.com/arso-fr/axionos/actions/workflows/build-image.yml)
+[![Build ISO](https://github.com/arso-fr/axionos/actions/workflows/build-and-release-iso.yml/badge.svg)](https://github.com/arso-fr/axionos/actions/workflows/build-and-release-iso.yml)
 [![License](https://img.shields.io/github/license/arso-fr/axionos)](LICENSE)
 [![Fedora](https://img.shields.io/badge/Fedora-Atomic-blue)](https://fedoraproject.org/atomic-desktops/)
 [![BlueBuild](https://img.shields.io/badge/Built%20With-BlueBuild-53a7ff)](https://blue-build.org)
