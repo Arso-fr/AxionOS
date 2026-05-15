@@ -34,7 +34,18 @@ jobs:
         uses: blue-build/github-action@v1.11
         with:
           recipe: ${{ matrix.recipe }}
+
+          # Cosign signing
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
+
+          # GHCR push
           registry_token: ${{ github.token }}
+
+          # PR support
           pr_event_number: ${{ github.event.number }}
+
+          # Disk optimization
           maximize_build_space: true
+
+          # Recommended explicit image name
+          image_name: axion-os
