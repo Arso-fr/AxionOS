@@ -36,7 +36,39 @@ AxionOS is distributed as:
 
 ---
 
-# 🧱 Technologies
+# � Éditions AxionOS
+
+AxionOS est conçu comme une plateforme entreprise modulaire avec plusieurs éditions :
+
+- `recipes/axion-os-desktop.yaml` : édition Desktop immuable basée sur `silverblue`
+- `recipes/axion-os-wsl-dev.yaml` : édition WSL basée sur `ucore` pour le développement
+- `recipes/axion-os-server.yaml` : édition Server basée sur `ucore` pour les charges de production
+
+Chaque édition repose sur une base propre et conserve le nécessaire pour être légère, rapide et adaptée à son usage.
+
+## Construire une édition
+
+Pour générer une image à partir d'une recette BlueBuild :
+
+```bash
+blue-build --recipe recipes/axion-os-server.yaml
+```
+
+Pour WSL :
+
+```bash
+blue-build --recipe recipes/axion-os-wsl-dev.yaml
+```
+
+Pour le bureau :
+
+```bash
+blue-build --recipe recipes/axion-os-desktop.yaml
+```
+
+---
+
+# �🧱 Technologies
 
 AxionOS is powered by:
 
