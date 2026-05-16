@@ -1,0 +1,132 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+
+name: axion-os-wsl-dev
+description: AxionOS for WSL2 with VSCode, Docker, Podman, and dev tools
+
+base-image: ghcr.io/ublue-os/ucore-minimal
+image-version: latest
+
+modules:
+  # =========================
+  # ESSENTIAL FILES (branding)
+  # =========================
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  # =========================
+  # CORE + DEV TOOLS
+  # =========================
+  - type: dnf
+    install:
+      packages:
+        # Outils de base
+        - git
+        - curl
+        - wget
+        - fastfetch
+        - btop
+        - micro
+        - less
+        - man-db
+        - man-pages
+        - glibc-langpack-en
+        - findutils
+        - which
+        - tar
+        - gzip
+        - unzip
+        - util-linux-user
+        - procps-ng
+        - iproute
+        - iputils
+
+        # Intégration WSL
+        - wslu
+
+        # Auto-complétion (bash + zsh)
+        - bash-completion
+        - zsh
+        - zsh-completions
+
+        # VSCode (dépendances pour les extensions)
+        - python3
+        - python3-pip
+        - nodejs
+        - npm
+        - gcc
+        - gcc-c++
+        - make
+        - cmake
+        - openssl-devel
+        - libffi-devel
+        - redhat-rpm-config
+
+        # Docker (déjà inclus dans uCore, mais on s'assure que tout est là)
+        - docker-buildx
+        - docker-compose
+        - moby-engine
+
+        # Podman (déjà inclus dans uCore)
+        - podman
+        - podman-compose
+        - podman-docker
+
+        # Outils conteneurs utiles
+        - distrobox
+        - buildah
+        - skopeo
+
+        # Dépendances pour VSCode Remote - Containers
+        - fuse-overlayfs
+        - slirp4netns
+        - fuse3
+
+    # On ne supprime rien de uCore minimal
+
+  # =========================
+  # NO FLATPAKS
+  # =========================
+  - type: default-flatpaks
+    configurations:
+      - scope: system
+        notify: false
+        install: []
+      - scope: user
+
+  # =========================
+  # WSL + DEV CONFIGURATIONS
+  # =========================
+  - type: script
+    snippets:
+      - |
+        # Configurer sudo pour l'utilisateur par défaut
+        echo "user ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/user
+        chmod 440 /etc/sudoers.d/user
+
+        # Activer systemd dans WSL
+        echo "[boot]" > /etc/wsl.conf
+        echo "systemd=true" >> /etc/wsl.conf
+
+        # Désactiver les services inutiles en WSL (mais ne pas les désinstaller)
+        systemctl --user mask cockpit.socket 2>/dev/null || true
+        systemctl --user mask firewalld 2>/dev/null || true
+        systemctl --user mask qemu-guest-agent 2>/dev/null || true
+        systemctl --user mask open-vm-tools 2>/dev/null || true
+
+        # Configurer Docker pour fonctionner en rootless (optionnel)
+        echo "export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock" >> /etc/bash.bashrc
+        echo "export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock" >> /etc/zsh/zprofile
+
+        # Activer l'auto-complétion pour zsh
+        echo "autoload -Uz compinit && compinit" >> /etc/zsh/zshrc
+
+        # Nettoyer les caches
+        dnf clean all
+        rm -rf /var/cache/dnf
+
+  # =========================
+  # SIGNING
+  # =========================
+  - type: signing
