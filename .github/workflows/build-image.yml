@@ -27,8 +27,8 @@ jobs:
       fail-fast: false
       matrix:
         recipe:
-          - axion-os-desktop.yaml
-          - axion-os-server.yaml
+          - recipes/axion-os-desktop.yaml
+          - recipes/axion-os-server.yaml
 
     steps:
       - name: Build axion-os Image

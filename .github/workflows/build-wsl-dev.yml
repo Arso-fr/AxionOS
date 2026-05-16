@@ -7,7 +7,7 @@ on:
 
 env:
   IMAGE_NAME: axion-os-wsl-dev
-  RECIPE_FILE: axion-os-wsl-dev.yaml
+  RECIPE_FILE: recipes/axion-os-wsl-dev.yaml
 
 jobs:
   build-and-release:
@@ -23,8 +23,9 @@ jobs:
 
       - name: Install blue-build
         run: |
-          curl -sSL https://github.com/blue-build/cli/releases/latest/download/bluebuild-linux-x86_64 -o /usr/local/bin/bluebuild
-          chmod +x /usr/local/bin/bluebuild
+          curl -sSL https://github.com/blue-build/cli/releases/latest/download/bluebuild-linux-x86_64 -o /tmp/bluebuild
+          chmod +x /tmp/bluebuild
+          sudo mv /tmp/bluebuild /usr/local/bin/bluebuild
 
       - name: Build image with blue-build
         run: |
