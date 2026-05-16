@@ -1,0 +1,49 @@
+name: Build and Release AxionOS WSL Dev Image
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  IMAGE_NAME: axion-os-wsl-dev
+  RECIPE_FILE: axion-os-wsl-dev.yaml
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Podman
+        uses: containers/podman-action@v1
+        with:
+          version: latest
+
+      - name: Install blue-build
+        run: |
+          curl -sSL https://github.com/blue-build/cli/releases/latest/download/bluebuild-linux-x86_64 -o /usr/local/bin/bluebuild
+          chmod +x /usr/local/bin/bluebuild
+
+      - name: Build image with blue-build
+        run: |
+          blue-build --recipe ${{ env.RECIPE_FILE }}
+
+      - name: Export image as tar.gz for WSL
+        run: |
+          FULL_IMAGE_NAME=$(podman image ls --format "{{.Repository}}:{{.Tag}}" | grep ${{ env.IMAGE_NAME }} | head -n 1)
+          echo "Exporting image: $FULL_IMAGE_NAME"
+          podman save -o ${{ env.IMAGE_NAME }}.tar $FULL_IMAGE_NAME
+          gzip -k ${{ env.IMAGE_NAME }}.tar
+          sha256sum ${{ env.IMAGE_NAME }}.tar.gz > ${{ env.IMAGE_NAME }}.sha256
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ env.IMAGE_NAME }}.tar.gz
+            ${{ env.IMAGE_NAME }}.sha256
+          generate_release_notes: true
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }} (WSL Dev)
