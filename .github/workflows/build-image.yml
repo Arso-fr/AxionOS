@@ -1,13 +1,16 @@
 name: Build Axion OS Image
 
 on:
-  schedule:
-    - cron: "00 06 * * *"
-  push:
-    paths-ignore:
-      - "**.md"
-  pull_request:
   workflow_dispatch:
+    inputs:
+      edition:
+        description: 'Edition to build: desktop, server, or wsl'
+        required: true
+        default: 'desktop'
+      release_version:
+        description: 'Release version (tag name)'
+        required: true
+        default: 'v1.0.0'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
@@ -23,18 +26,41 @@ jobs:
       packages: write
       id-token: write
 
-    strategy:
-      fail-fast: false
-      matrix:
-        recipe:
-          - axion-os-desktop.yaml
-          - axion-os-server.yaml
-
     steps:
+      - name: Authorization check
+        run: |
+          if [ "${{ github.actor }}" != "Arso-fr" ]; then
+            echo "❌ Unauthorized user: ${{ github.actor }}"
+            exit 1
+          fi
+
+      - name: Set edition variables
+        run: |
+          edition=${{ github.event.inputs.edition }}
+          case "${edition,,}" in
+            desktop)
+              echo "RECIPE=recipes/axion-os-desktop.yaml" >> $GITHUB_ENV
+              echo "IMAGE_NAME=axion-os-desktop" >> $GITHUB_ENV
+              ;;
+            server)
+              echo "RECIPE=recipes/axion-os-server.yaml" >> $GITHUB_ENV
+              echo "IMAGE_NAME=axion-os-server" >> $GITHUB_ENV
+              ;;
+            wsl)
+              echo "RECIPE=recipes/axion-os-wsl-dev.yaml" >> $GITHUB_ENV
+              echo "IMAGE_NAME=axion-os-wsl-dev" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "Unknown edition: ${edition}"
+              exit 1
+              ;;
+          esac
+          echo "RELEASE_VERSION=${{ github.event.inputs.release_version }}" >> $GITHUB_ENV
+
       - name: Build axion-os Image
         uses: blue-build/github-action@v1.11
         with:
-          recipe: ${{ matrix.recipe }}
+          recipe: ${{ env.RECIPE }}
 
           # Cosign signing
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
@@ -49,4 +75,4 @@ jobs:
           maximize_build_space: true
 
           # Recommended explicit image name
-          image_name: axion-os
+          image_name: ${{ env.IMAGE_NAME }}

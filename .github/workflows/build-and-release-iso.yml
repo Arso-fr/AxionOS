@@ -3,6 +3,10 @@ name: Build Iso and release (axion-os)
 on:
   workflow_dispatch:
     inputs:
+      edition:
+        description: 'Edition to release: desktop, server, or wsl'
+        required: true
+        default: 'desktop'
       release_version:
         description: 'Release version (tag name)'
         required: true
@@ -49,7 +53,22 @@ jobs:
       - name: Set base image (axion-os)
         id: meta
         run: |
-          echo "image=ghcr.io/arso-fr/axion-os:latest" >> $GITHUB_OUTPUT
+          edition=${{ github.event.inputs.edition }}
+          case "${edition,,}" in
+            desktop)
+              echo "image=ghcr.io/arso-fr/axion-os-desktop:latest" >> $GITHUB_OUTPUT
+              ;;
+            server)
+              echo "image=ghcr.io/arso-fr/axion-os-server:latest" >> $GITHUB_OUTPUT
+              ;;
+            wsl)
+              echo "image=ghcr.io/arso-fr/axion-os-wsl-dev:latest" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Unknown edition: ${edition}"
+              exit 1
+              ;;
+          esac
 
       # =========================
       # ISO NAME
@@ -57,8 +76,9 @@ jobs:
       - name: Define ISO filename
         id: iso
         run: |
+          edition=${{ github.event.inputs.edition }}
           version=${{ github.event.inputs.release_version }}
-          echo "iso_name=axion-os-${version}.iso" >> $GITHUB_OUTPUT
+          echo "iso_name=axion-os-${edition}-${version}.iso" >> $GITHUB_OUTPUT
 
       # =========================
       # GENERATE ISO
@@ -123,7 +143,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.release_version }}
-          name: Axion OS ${{ github.event.inputs.release_version }}
+          name: Axion OS ${{ github.event.inputs.edition }} ${{ github.event.inputs.release_version }}
           files: |
             *.iso
             *.sha256
