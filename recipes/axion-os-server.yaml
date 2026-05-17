@@ -22,10 +22,8 @@ modules:
     install:
       packages:
         - git
-        - curl
         - wget
         - btop
-        - less
         - man-db
         - man-pages
         - glibc-langpack-en
@@ -50,8 +48,6 @@ modules:
         - buildah
         - skopeo
         - distrobox
-        - jq
-        - nano
 
   # =========================
   # SERVER CONFIGURATION
@@ -85,4 +81,4 @@ modules:
   # =========================
   # SIGNING
   # =========================
-  - type: signing
+  - type: signing:
