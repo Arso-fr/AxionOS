@@ -30,15 +30,15 @@ jobs:
         run: |
           case "${{ github.event.inputs.edition }}" in
             desktop)
-              echo "RECIPE=recipes/axion-os-desktop.yaml" >> $GITHUB_ENV
+              echo "RECIPE=/axion-os-desktop.yaml" >> $GITHUB_ENV
               echo "IMAGE_NAME=axion-os-desktop" >> $GITHUB_ENV
               ;;
             server)
-              echo "RECIPE=recipes/axion-os-server.yaml" >> $GITHUB_ENV
+              echo "RECIPE=/axion-os-server.yaml" >> $GITHUB_ENV
               echo "IMAGE_NAME=axion-os-server" >> $GITHUB_ENV
               ;;
             wsl)
-              echo "RECIPE=recipes/axion-os-wsl-dev.yaml" >> $GITHUB_ENV
+              echo "RECIPE=/axion-os-wsl-dev.yaml" >> $GITHUB_ENV
               echo "IMAGE_NAME=axion-os-wsl-dev" >> $GITHUB_ENV
               ;;
             *)
