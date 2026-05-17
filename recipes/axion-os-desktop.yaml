@@ -26,7 +26,6 @@ modules:
         - git
         - fastfetch
         - btop
-        - starship
         - micro
 
         # GNOME essentials only
