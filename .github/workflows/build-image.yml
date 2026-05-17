@@ -7,18 +7,10 @@ on:
         description: 'Edition to build: desktop, server, or wsl'
         required: true
         default: 'desktop'
-      release_version:
-        description: 'Release version (tag name)'
-        required: true
-        default: 'v1.0.0'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-  cancel-in-progress: true
 
 jobs:
-  bluebuild:
-    name: Build axion-os Image
+  build:
+    name: Build axion-os image
     runs-on: ubuntu-latest
 
     permissions:
@@ -36,8 +28,7 @@ jobs:
 
       - name: Set edition variables
         run: |
-          edition=${{ github.event.inputs.edition }}
-          case "${edition,,}" in
+          case "${{ github.event.inputs.edition }}" in
             desktop)
               echo "RECIPE=recipes/axion-os-desktop.yaml" >> $GITHUB_ENV
               echo "IMAGE_NAME=axion-os-desktop" >> $GITHUB_ENV
@@ -51,28 +42,17 @@ jobs:
               echo "IMAGE_NAME=axion-os-wsl-dev" >> $GITHUB_ENV
               ;;
             *)
-              echo "Unknown edition: ${edition}"
+              echo "Unknown edition: ${{ github.event.inputs.edition }}"
               exit 1
               ;;
           esac
-          echo "RELEASE_VERSION=${{ github.event.inputs.release_version }}" >> $GITHUB_ENV
 
-      - name: Build axion-os Image
+      - name: Build axion-os image
         uses: blue-build/github-action@v1.11
         with:
           recipe: ${{ env.RECIPE }}
-
-          # Cosign signing
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
-
-          # GHCR push
           registry_token: ${{ github.token }}
-
-          # PR support
           pr_event_number: ${{ github.event.number }}
-
-          # Disk optimization
           maximize_build_space: true
-
-          # Recommended explicit image name
           image_name: ${{ env.IMAGE_NAME }}

@@ -12,25 +12,19 @@ on:
         required: true
         default: 'v1.0.0'
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
-
   iso:
-
     name: Generate axion-os ISO
     runs-on: ubuntu-latest
 
     permissions:
       contents: write
 
-    steps:
+    env:
+      EDITION: ${{ github.event.inputs.edition }}
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
 
-      # =========================
-      # 🔐 OWNER ONLY CHECK
-      # =========================
+    steps:
       - name: Authorization check
         run: |
           if [ "${{ github.actor }}" != "Arso-fr" ]; then
@@ -38,67 +32,41 @@ jobs:
             exit 1
           fi
 
-      # =========================
-      # INSTALL BLUEBUILD CLI
-      # =========================
+      - name: Set release variables
+        run: |
+          case "${{ env.EDITION }}" in
+            desktop)
+              echo "BASE_IMAGE=ghcr.io/arso-fr/axion-os-desktop:latest" >> $GITHUB_ENV
+              ;;
+            server)
+              echo "BASE_IMAGE=ghcr.io/arso-fr/axion-os-server:latest" >> $GITHUB_ENV
+              ;;
+            wsl)
+              echo "BASE_IMAGE=ghcr.io/arso-fr/axion-os-wsl-dev:latest" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "Unknown edition: ${EDITION}"
+              exit 1
+              ;;
+          esac
+          echo "ISO_NAME=axion-os-${EDITION}-${RELEASE_VERSION}.iso" >> $GITHUB_ENV
+
       - name: Install BlueBuild CLI
         run: |
           curl -L https://github.com/blue-build/cli/releases/latest/download/bluebuild-linux-amd64 -o bluebuild
           chmod +x bluebuild
           sudo mv bluebuild /usr/local/bin/
 
-      # =========================
-      # BASE IMAGE
-      # =========================
-      - name: Set base image (axion-os)
-        id: meta
-        run: |
-          edition=${{ github.event.inputs.edition }}
-          case "${edition,,}" in
-            desktop)
-              echo "image=ghcr.io/arso-fr/axion-os-desktop:latest" >> $GITHUB_OUTPUT
-              ;;
-            server)
-              echo "image=ghcr.io/arso-fr/axion-os-server:latest" >> $GITHUB_OUTPUT
-              ;;
-            wsl)
-              echo "image=ghcr.io/arso-fr/axion-os-wsl-dev:latest" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "Unknown edition: ${edition}"
-              exit 1
-              ;;
-          esac
-
-      # =========================
-      # ISO NAME
-      # =========================
-      - name: Define ISO filename
-        id: iso
-        run: |
-          edition=${{ github.event.inputs.edition }}
-          version=${{ github.event.inputs.release_version }}
-          echo "iso_name=axion-os-${edition}-${version}.iso" >> $GITHUB_OUTPUT
-
-      # =========================
-      # GENERATE ISO
-      # =========================
       - name: Generate ISO
         run: |
           bluebuild generate-iso \
-            --iso-name ${{ steps.iso.outputs.iso_name }} \
-            image ${{ steps.meta.outputs.image }}
+            --iso-name "${{ env.ISO_NAME }}" \
+            image "${{ env.BASE_IMAGE }}"
 
-      # =========================
-      # CHECKSUM
-      # =========================
       - name: Generate SHA256
         run: |
-          sha256sum ${{ steps.iso.outputs.iso_name }} > ${{ steps.iso.outputs.iso_name }}.sha256
+          sha256sum "${{ env.ISO_NAME }}" > "${{ env.ISO_NAME }}.sha256"
 
-      # =========================
-      # ARTIFACT
-      # =========================
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -108,7 +76,6 @@ jobs:
             *.sha256
 
   release:
-
     name: Publish Release
     runs-on: ubuntu-latest
     needs: iso
@@ -116,11 +83,11 @@ jobs:
     permissions:
       contents: write
 
-    steps:
+    env:
+      EDITION: ${{ github.event.inputs.edition }}
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
 
-      # =========================
-      # 🔐 OWNER ONLY CHECK
-      # =========================
+    steps:
       - name: Authorization check
         run: |
           if [ "${{ github.actor }}" != "Arso-fr" ]; then
@@ -128,22 +95,16 @@ jobs:
             exit 1
           fi
 
-      # =========================
-      # DOWNLOAD ARTIFACT
-      # =========================
       - name: Download ISO
         uses: actions/download-artifact@v4
         with:
           name: axion-os-iso
 
-      # =========================
-      # RELEASE
-      # =========================
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.event.inputs.release_version }}
-          name: Axion OS ${{ github.event.inputs.edition }} ${{ github.event.inputs.release_version }}
+          tag_name: ${{ env.RELEASE_VERSION }}
+          name: Axion OS ${{ env.EDITION }} ${{ env.RELEASE_VERSION }}
           files: |
             *.iso
             *.sha256
