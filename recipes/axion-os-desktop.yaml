@@ -22,15 +22,11 @@ modules:
   - type: dnf
     install:
       packages:
-        # Core tools only
+        # Core tools only (curl, wget, distrobox, podman already in base image)
         - git
-        - curl
-        - wget
         - fastfetch
         - btop
         - starship
-        - distrobox
-        - podman
         - micro
 
         # GNOME essentials only
