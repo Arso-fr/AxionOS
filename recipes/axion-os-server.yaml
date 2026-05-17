@@ -44,10 +44,8 @@ modules:
         - firewalld
         - cockpit
         - cockpit-docker
-        - podman
         - buildah
         - skopeo
-        - distrobox
 
   # =========================
   # SERVER CONFIGURATION
@@ -81,4 +79,4 @@ modules:
   # =========================
   # SIGNING
   # =========================
-  - type: signing:
+  - type: signing
