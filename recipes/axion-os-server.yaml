@@ -43,7 +43,6 @@ modules:
         - tuned
         - firewalld
         - cockpit
-        - cockpit-docker
         - buildah
         - skopeo
 
