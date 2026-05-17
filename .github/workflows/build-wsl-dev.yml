@@ -1,9 +1,12 @@
 name: Build and Release AxionOS WSL Dev Image
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version (tag name)'
+        required: true
+        default: 'v1.0.0'
 
 env:
   IMAGE_NAME: axion-os-wsl-dev
@@ -13,6 +16,13 @@ jobs:
   build-and-release:
     runs-on: ubuntu-latest
     steps:
+      - name: Authorization check
+        run: |
+          if [ "${{ github.actor }}" != "Arso-fr" ]; then
+            echo "❌ Unauthorized user: ${{ github.actor }}"
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -35,16 +45,16 @@ jobs:
         run: |
           FULL_IMAGE_NAME=$(podman image ls --format "{{.Repository}}:{{.Tag}}" | grep ${{ env.IMAGE_NAME }} | head -n 1)
           echo "Exporting image: $FULL_IMAGE_NAME"
-          podman save -o ${{ env.IMAGE_NAME }}.tar $FULL_IMAGE_NAME
-          gzip -k ${{ env.IMAGE_NAME }}.tar
-          sha256sum ${{ env.IMAGE_NAME }}.tar.gz > ${{ env.IMAGE_NAME }}.sha256
+          podman save -o ${{ env.IMAGE_NAME }}-${{ github.event.inputs.release_version }}.tar $FULL_IMAGE_NAME
+          gzip -k ${{ env.IMAGE_NAME }}-${{ github.event.inputs.release_version }}.tar
+          sha256sum ${{ env.IMAGE_NAME }}-${{ github.event.inputs.release_version }}.tar.gz > ${{ env.IMAGE_NAME }}-${{ github.event.inputs.release_version }}.sha256
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ${{ env.IMAGE_NAME }}.tar.gz
-            ${{ env.IMAGE_NAME }}.sha256
+            ${{ env.IMAGE_NAME }}-${{ github.event.inputs.release_version }}.tar.gz
+            ${{ env.IMAGE_NAME }}-${{ github.event.inputs.release_version }}.sha256
           generate_release_notes: true
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }} (WSL Dev)
+          tag_name: ${{ github.event.inputs.release_version }}
+          name: Release ${{ github.event.inputs.release_version }} (WSL Dev)

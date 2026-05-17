@@ -1,9 +1,12 @@
 name: Build Iso and release (axion-os)
 
 on:
-  schedule:
-    - cron: "0 6 1 * *" # 1er du mois à 06:00 UTC
   workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version (tag name)'
+        required: true
+        default: 'v1.0.0'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
@@ -26,7 +29,7 @@ jobs:
       # =========================
       - name: Authorization check
         run: |
-          if [ "${{ github.actor }}" != "TON_USERNAME_GITHUB" ]; then
+          if [ "${{ github.actor }}" != "Arso-fr" ]; then
             echo "❌ Unauthorized user: ${{ github.actor }}"
             exit 1
           fi
@@ -54,8 +57,8 @@ jobs:
       - name: Define ISO filename
         id: iso
         run: |
-          DATE=$(date +%Y-%m-%d)
-          echo "iso_name=axion-os-${DATE}-${GITHUB_RUN_NUMBER}.iso" >> $GITHUB_OUTPUT
+          version=${{ github.event.inputs.release_version }}
+          echo "iso_name=axion-os-${version}.iso" >> $GITHUB_OUTPUT
 
       # =========================
       # GENERATE ISO
@@ -119,8 +122,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: axion-os-${{ github.run_number }}
-          name: Axion OS Build ${{ github.run_number }}
+          tag_name: ${{ github.event.inputs.release_version }}
+          name: Axion OS ${{ github.event.inputs.release_version }}
           files: |
             *.iso
             *.sha256
