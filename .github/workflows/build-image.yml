@@ -48,7 +48,7 @@ jobs:
           esac
 
       - name: Build axion-os image
-        uses: blue-build/github-action@v1.11
+        uses: blue-build/github-action@v1.13
         with:
           recipe: ${{ env.RECIPE }}
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
